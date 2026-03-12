@@ -1,0 +1,34 @@
+name: CalmNAV Notify
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Covered UTC slots for 08:30 America/New_York across EST and EDT.
+    - cron: "30 12 * * 1-5"
+    - cron: "30 14 * * 1-5"
+    # Covered UTC slots for 17:00 America/New_York across EST and EDT.
+    - cron: "0 21 * * 1-5"
+    - cron: "0 22 * * 1-5"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run CalmNAV notifier
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          MANUAL_BTC_HOLDINGS: ${{ secrets.MANUAL_BTC_HOLDINGS }}
+          MANUAL_TOTAL_COST_USD: ${{ secrets.MANUAL_TOTAL_COST_USD }}
+          MANUAL_SHARES_OUTSTANDING: ${{ secrets.MANUAL_SHARES_OUTSTANDING }}
+        run: python -m calmnav.main --send-discord --scheduled-run
