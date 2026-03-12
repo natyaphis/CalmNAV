@@ -2,9 +2,14 @@
 
 Lightweight MSTR mNAV calculator with optional Discord notifications.
 
+Current version: `1.0.0`
+
 ## What it does
 
-- Scrapes `https://www.strategy.com/purchases` for Strategy's reported BTC holdings and total cost.
+- Pulls Strategy BTC holdings and total cost with a fallback chain:
+  - `https://www.strategy.com/purchases` structured `__NEXT_DATA__`
+  - latest official Strategy `8-K` from SEC
+  - manual override secrets
 - Fetches `MSTR` price from Stooq and `BTC` price from CoinGecko.
 - Computes a simple mNAV ratio as:
 
@@ -36,6 +41,7 @@ Set these values as needed:
 - `DISCORD_WEBHOOK_URL`: required only when sending to Discord
 - `ALERT_TIMEZONE`: optional, defaults to `Australia/Sydney`
 - `ALERT_TIMES`: optional comma-separated 24-hour times, defaults to `09:00,21:00`
+- `SEC_USER_AGENT`: optional but recommended for SEC requests
 - `MANUAL_BTC_HOLDINGS`: optional fallback if the Strategy page changes
 - `MANUAL_TOTAL_COST_USD`: optional fallback if the Strategy page changes
 - `MANUAL_SHARES_OUTSTANDING`: required for market-cap calculation in the current GitHub Actions setup
@@ -53,6 +59,7 @@ python3 -m calmnav.main --send-discord
 Add these repository secrets:
 
 - `DISCORD_WEBHOOK_URL`
+- `SEC_USER_AGENT` (optional, recommended)
 - `MANUAL_BTC_HOLDINGS` (optional)
 - `MANUAL_TOTAL_COST_USD` (optional)
 - `MANUAL_SHARES_OUTSTANDING` (optional)
@@ -75,6 +82,6 @@ Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, 
 
 ## Notes
 
-- The Strategy purchases page is a website, not a guaranteed public API. Expect scraping breakage eventually.
+- The primary holdings source is the Strategy purchases page's structured Next.js payload. If that fails, CalmNAV falls back to the latest official Strategy `8-K`, then to manual secrets.
 - Stooq and CoinGecko are convenient for a first version but are not official low-latency market data feeds.
 - This project currently computes a simple market-cap-based mNAV, not Strategy's full enterprise-value-based definition.

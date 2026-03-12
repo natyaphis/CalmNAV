@@ -29,6 +29,10 @@ class Settings:
         "CALMNAV_USER_AGENT",
         "CalmNAV/0.1 (+https://github.com/your-org/CalmNAV)",
     )
+    sec_user_agent: str = os.getenv(
+        "SEC_USER_AGENT",
+        "CalmNAV/1.0.0 (https://github.com/natyaphis/CalmNAV; contact via GitHub)",
+    )
     alert_timezone: str = os.getenv("ALERT_TIMEZONE", "Australia/Sydney")
     alert_times: tuple[str, ...] = _read_csv("ALERT_TIMES", "09:00,21:00")
     manual_btc_holdings: float | None = _read_float("MANUAL_BTC_HOLDINGS")
