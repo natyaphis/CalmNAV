@@ -50,9 +50,13 @@ class Settings:
         "SEC_USER_AGENT",
         "CalmNAV/1.0.1 (https://github.com/natyaphis/CalmNAV; contact via GitHub)",
     )
+    github_repository: str | None = os.getenv("GITHUB_REPOSITORY")
+    github_token: str | None = os.getenv("GITHUB_TOKEN")
+    schedule_state_branch: str = os.getenv("SCHEDULE_STATE_BRANCH", "automation-state")
+    schedule_state_path: str = os.getenv("SCHEDULE_STATE_PATH", ".calmnav/schedule-state.json")
     alert_timezone: str = os.getenv("ALERT_TIMEZONE", "Australia/Sydney")
     alert_times: tuple[str, ...] = _read_csv("ALERT_TIMES", "09:00,21:00")
-    alert_window_minutes: int = _read_int("ALERT_WINDOW_MINUTES", 15)
+    alert_window_minutes: int = _read_int("ALERT_WINDOW_MINUTES", 30)
     manual_btc_holdings: float | None = _read_float("MANUAL_BTC_HOLDINGS")
     manual_total_cost_usd: float | None = _read_float("MANUAL_TOTAL_COST_USD")
     manual_shares_outstanding: float | None = _read_float("MANUAL_SHARES_OUTSTANDING")

@@ -44,8 +44,10 @@ Set these values as needed:
 - `DISCORD_EMBED_COLOR`: optional hex embed color, defaults to `FA660F`
 - `ALERT_TIMEZONE`: optional, defaults to `Australia/Sydney`
 - `ALERT_TIMES`: optional comma-separated 24-hour times, defaults to `09:00,21:00`
-- `ALERT_WINDOW_MINUTES`: optional, defaults to `15`
+- `ALERT_WINDOW_MINUTES`: optional, defaults to `30`
 - `SEC_USER_AGENT`: optional but recommended for SEC requests
+- `SCHEDULE_STATE_BRANCH`: optional, defaults to `automation-state`
+- `SCHEDULE_STATE_PATH`: optional, defaults to `.calmnav/schedule-state.json`
 - `MANUAL_BTC_HOLDINGS`: optional fallback if the Strategy page changes
 - `MANUAL_TOTAL_COST_USD`: optional fallback if the Strategy page changes
 - `MANUAL_SHARES_OUTSTANDING`: required for market-cap calculation in the current GitHub Actions setup
@@ -72,16 +74,20 @@ Add these repository secrets:
 The included workflow runs every day at these UTC slots:
 
 - `22:07 UTC`
+- `22:22 UTC`
 - `23:07 UTC`
+- `23:22 UTC`
 - `10:07 UTC`
+- `10:22 UTC`
 - `11:07 UTC`
+- `11:22 UTC`
 
 The script uses the configured local alert timezone and only sends messages at:
 
 - `09:00 Australia/Sydney`
 - `21:00 Australia/Sydney`
 
-The extra UTC entries are there to cover both AEST and AEDT. The workflow avoids running exactly on `:00`, and the script accepts a short local alert window so the `09:00` and `21:00` Sydney notifications are less likely to be missed by GitHub scheduler jitter.
+The extra UTC entries cover both AEST and AEDT and include a fallback run for each alert slot. CalmNAV stores sent-slot state in GitHub so only one message is sent for each Sydney `09:00` and `21:00` window even if both the primary and fallback schedules fire.
 
 Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, which is useful for testing the Discord notification path.
 

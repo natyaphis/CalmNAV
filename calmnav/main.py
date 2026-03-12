@@ -10,6 +10,7 @@ from calmnav.calculator import compute_mnav
 from calmnav.config import settings
 from calmnav.data_sources import fetch_market_snapshot, fetch_strategy_holdings
 from calmnav.notifier import build_discord_payload, format_message, post_to_discord
+from calmnav.schedule_state import mark_slot_sent, should_send_slot
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -32,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def should_run_now() -> bool:
+def get_current_alert_slot() -> str | None:
     alert_tz = ZoneInfo(settings.alert_timezone)
     now_local = datetime.now(alert_tz)
     current_minutes = now_local.hour * 60 + now_local.minute
@@ -42,18 +43,26 @@ def should_run_now() -> bool:
         target_minutes = int(hour_text) * 60 + int(minute_text)
         delta = current_minutes - target_minutes
         if 0 <= delta <= settings.alert_window_minutes:
-            return True
+            return f"{now_local.date().isoformat()}-{alert_time}"
 
-    return False
+    return None
 
 
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.scheduled_run and not should_run_now():
-        print("Skipping run outside target alert window.")
-        return 0
+    slot_key: str | None = None
+    if args.scheduled_run:
+        slot_key = get_current_alert_slot()
+        if not slot_key:
+            print("Skipping run outside target alert window.")
+            return 0
+
+        decision = should_send_slot(settings, slot_key)
+        print(decision.reason)
+        if not decision.should_send:
+            return 0
 
     holdings = fetch_strategy_holdings(settings)
     market = fetch_market_snapshot(settings, holdings)
@@ -83,6 +92,8 @@ def main() -> int:
             settings.discord_webhook_url,
             build_discord_payload(settings, holdings, market, result),
         )
+        if args.scheduled_run and slot_key:
+            mark_slot_sent(settings, slot_key)
 
     return 0
 
