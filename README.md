@@ -39,6 +39,7 @@ cp .env.example .env
 Set these values as needed:
 
 - `DISCORD_WEBHOOK_URL`: required only when sending to Discord
+- `DISCORD_EMBED_COLOR`: optional hex embed color, defaults to `FA660F`
 - `ALERT_TIMEZONE`: optional, defaults to `Australia/Sydney`
 - `ALERT_TIMES`: optional comma-separated 24-hour times, defaults to `09:00,21:00`
 - `SEC_USER_AGENT`: optional but recommended for SEC requests
@@ -59,6 +60,7 @@ python3 -m calmnav.main --send-discord
 Add these repository secrets:
 
 - `DISCORD_WEBHOOK_URL`
+- `DISCORD_EMBED_COLOR` (optional)
 - `SEC_USER_AGENT` (optional, recommended)
 - `MANUAL_BTC_HOLDINGS` (optional)
 - `MANUAL_TOTAL_COST_USD` (optional)

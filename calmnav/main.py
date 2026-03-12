@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from calmnav.calculator import compute_mnav
 from calmnav.config import settings
 from calmnav.data_sources import fetch_market_snapshot, fetch_strategy_holdings
-from calmnav.notifier import format_message, post_to_discord
+from calmnav.notifier import build_discord_payload, format_message, post_to_discord
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,7 +71,10 @@ def main() -> int:
     if args.send_discord:
         if not settings.discord_webhook_url:
             parser.error("DISCORD_WEBHOOK_URL must be set when using --send-discord.")
-        post_to_discord(settings.discord_webhook_url, format_message(holdings, market, result))
+        post_to_discord(
+            settings.discord_webhook_url,
+            build_discord_payload(settings, holdings, market, result),
+        )
 
     return 0
 
