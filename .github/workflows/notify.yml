@@ -3,12 +3,12 @@ name: CalmNAV Notify
 on:
   workflow_dispatch:
   schedule:
-    # Covered UTC slots for 08:30 America/New_York across EST and EDT.
-    - cron: "30 12 * * 1-5"
-    - cron: "30 14 * * 1-5"
-    # Covered UTC slots for 17:00 America/New_York across EST and EDT.
-    - cron: "0 21 * * 1-5"
-    - cron: "0 22 * * 1-5"
+    # Covered UTC slots for 09:00 Australia/Sydney across AEST and AEDT.
+    - cron: "0 22 * * *"
+    - cron: "0 23 * * *"
+    # Covered UTC slots for 21:00 Australia/Sydney across AEST and AEDT.
+    - cron: "0 10 * * *"
+    - cron: "0 11 * * *"
 
 jobs:
   notify:
@@ -28,6 +28,8 @@ jobs:
       - name: Run CalmNAV notifier
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ALERT_TIMEZONE: Australia/Sydney
+          ALERT_TIMES: 09:00,21:00
           MANUAL_BTC_HOLDINGS: ${{ secrets.MANUAL_BTC_HOLDINGS }}
           MANUAL_TOTAL_COST_USD: ${{ secrets.MANUAL_TOTAL_COST_USD }}
           MANUAL_SHARES_OUTSTANDING: ${{ secrets.MANUAL_SHARES_OUTSTANDING }}

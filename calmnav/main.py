@@ -27,23 +27,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--scheduled-run",
         action="store_true",
-        help="Only send output when the current New York time matches an alert window on a NYSE trading day.",
+        help="Only send output when the current local alert time matches a configured alert window.",
     )
     return parser
 
 
 def should_run_now() -> bool:
-    import pandas_market_calendars as mcal
-
-    ny_tz = ZoneInfo("America/New_York")
-    now_ny = datetime.now(ny_tz)
-    allowed_times = {(8, 30), (17, 0)}
-    if (now_ny.hour, now_ny.minute) not in allowed_times:
-        return False
-
-    nyse = mcal.get_calendar("NYSE")
-    schedule = nyse.schedule(start_date=now_ny.date(), end_date=now_ny.date())
-    return not schedule.empty
+    alert_tz = ZoneInfo(settings.alert_timezone)
+    now_local = datetime.now(alert_tz)
+    current_time = now_local.strftime("%H:%M")
+    return current_time in set(settings.alert_times)
 
 
 def main() -> int:
@@ -51,7 +44,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.scheduled_run and not should_run_now():
-        print("Skipping run outside target NYSE alert window.")
+        print("Skipping run outside target alert window.")
         return 0
 
     holdings = fetch_strategy_holdings(settings)

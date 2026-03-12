@@ -34,6 +34,8 @@ cp .env.example .env
 Set these values as needed:
 
 - `DISCORD_WEBHOOK_URL`: required only when sending to Discord
+- `ALERT_TIMEZONE`: optional, defaults to `Australia/Sydney`
+- `ALERT_TIMES`: optional comma-separated 24-hour times, defaults to `09:00,21:00`
 - `MANUAL_BTC_HOLDINGS`: optional fallback if the Strategy page changes
 - `MANUAL_TOTAL_COST_USD`: optional fallback if the Strategy page changes
 - `MANUAL_SHARES_OUTSTANDING`: required for market-cap calculation in the current GitHub Actions setup
@@ -55,19 +57,19 @@ Add these repository secrets:
 - `MANUAL_TOTAL_COST_USD` (optional)
 - `MANUAL_SHARES_OUTSTANDING` (optional)
 
-The included workflow runs on weekdays at:
+The included workflow runs every day at these UTC slots:
 
-- `12:30 UTC`
-- `14:30 UTC`
-- `21:00 UTC`
 - `22:00 UTC`
+- `23:00 UTC`
+- `10:00 UTC`
+- `11:00 UTC`
 
-The script uses New York time and the NYSE calendar to only send messages at:
+The script uses the configured local alert timezone and only sends messages at:
 
-- `08:30 America/New_York`
-- `17:00 America/New_York`
+- `09:00 Australia/Sydney`
+- `21:00 Australia/Sydney`
 
-The extra UTC entries are there to cover both EST and EDT. GitHub Actions can still run late, so timing is best-effort rather than exact-to-the-minute.
+The extra UTC entries are there to cover both AEST and AEDT. GitHub Actions can still run late, so timing is best-effort rather than exact-to-the-minute.
 
 Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, which is useful for testing the Discord notification path.
 
