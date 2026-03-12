@@ -4,6 +4,8 @@ Lightweight MSTR mNAV calculator with optional Discord notifications.
 
 Current version: `1.0.1`
 
+![CalmNAV Discord terminal preview](asset/Screenshot.png)
+
 ## What it does
 
 - Pulls Strategy BTC holdings and total cost with a fallback chain:
