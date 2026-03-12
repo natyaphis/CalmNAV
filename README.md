@@ -2,7 +2,7 @@
 
 Lightweight MSTR mNAV calculator with optional Discord notifications.
 
-Current version: `1.0.0`
+Current version: `1.0.1`
 
 ## What it does
 

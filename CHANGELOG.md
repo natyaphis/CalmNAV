@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-03-12
+
+### Changed
+
+- Added Discord embed-based notifications with configurable accent color.
+- Restyled the Discord message into a more terminal-like financial card layout.
+- Emphasized top-line quote data and mNAV in the Discord notification format.
+
 ## [1.0.0] - 2026-03-12
 
 ### Added
