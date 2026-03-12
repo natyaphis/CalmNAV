@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - Added Discord embed-based notifications with configurable accent color.
 - Restyled the Discord message into a more terminal-like financial card layout.
 - Emphasized top-line quote data and mNAV in the Discord notification format.
+- Updated the GitHub release workflow skill to support non-`.toc` projects such as CalmNAV.
+- Added a project screenshot asset and embedded it in the README.
 
 ## [1.0.0] - 2026-03-12
 
