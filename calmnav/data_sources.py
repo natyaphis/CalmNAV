@@ -150,13 +150,10 @@ def fetch_stooq_price(settings: Settings, ticker: str) -> float:
         timeout=30,
     )
     response.raise_for_status()
-    lines = [line.strip() for line in response.text.splitlines() if line.strip()]
-    if len(lines) < 2:
+    fields = [item.strip() for item in response.text.strip().split(",")]
+    if len(fields) < 7:
         raise ValueError(f"Unexpected Stooq response for {ticker}: {response.text!r}")
-    header = [item.strip().lower() for item in lines[0].split(",")]
-    values = [item.strip() for item in lines[1].split(",")]
-    row = dict(zip(header, values, strict=False))
-    close_value = row.get("close")
+    close_value = fields[6]
     if not close_value or close_value.lower() == "n/d":
         raise ValueError(f"Missing Stooq close price for {ticker}.")
     return float(close_value)
