@@ -42,16 +42,18 @@ def build_discord_payload(
             {
                 "title": "CalmNAV Update",
                 "color": settings.discord_embed_color,
+                "description": (
+                    f"**mNAV {result.mnav:.3f}x**\n"
+                    f"MSTR `${market.mstr_price_usd:,.2f}` | "
+                    f"BTC `${market.btc_price_usd:,.2f}`"
+                ),
                 "timestamp": timestamp,
                 "fields": [
-                    {"name": "MSTR", "value": f"${market.mstr_price_usd:,.2f}", "inline": True},
-                    {"name": "BTC", "value": f"${market.btc_price_usd:,.2f}", "inline": True},
-                    {"name": "mNAV", "value": f"{result.mnav:.3f}x", "inline": True},
-                    {"name": "MSTR Market Cap", "value": f"${market.market_cap_usd / 1_000_000_000:,.2f}B", "inline": True},
+                    {"name": "Premium to Cost", "value": f"{result.premium_to_cost:.3f}x", "inline": True},
                     {"name": "Reported BTC", "value": f"{holdings.btc_holdings:,.0f}", "inline": True},
                     {"name": "Total Cost", "value": f"${holdings.total_cost_usd / 1_000_000_000:,.2f}B", "inline": True},
                     {"name": "BTC Market Value", "value": f"${result.btc_market_value_usd / 1_000_000_000:,.2f}B", "inline": True},
-                    {"name": "Premium to Cost", "value": f"{result.premium_to_cost:.3f}x", "inline": True},
+                    {"name": "MSTR Market Cap", "value": f"${market.market_cap_usd / 1_000_000_000:,.2f}B", "inline": True},
                     {"name": "Sources", "value": f"holdings={holdings.source}\nmarket={market.source}", "inline": False},
                 ],
             }
