@@ -48,7 +48,7 @@ class Settings:
     )
     sec_user_agent: str = os.getenv(
         "SEC_USER_AGENT",
-        "CalmNAV/1.0.1 (https://github.com/natyaphis/CalmNAV; contact via GitHub)",
+        "CalmNAV/1.0.2 (https://github.com/natyaphis/CalmNAV; contact via GitHub)",
     )
     github_repository: str | None = os.getenv("GITHUB_REPOSITORY")
     github_token: str | None = os.getenv("GITHUB_TOKEN")

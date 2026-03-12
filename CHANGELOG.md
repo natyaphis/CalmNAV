@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2026-03-12
+
+### Changed
+
+- Added fallback scheduled runs for each Sydney alert slot.
+- Added GitHub-backed sent-slot state to prevent duplicate Discord notifications between primary and fallback runs.
+- Hardened the 09:00 and 21:00 Sydney delivery flow against missed GitHub scheduled executions.
+
 ## [1.0.1] - 2026-03-12
 
 ### Changed

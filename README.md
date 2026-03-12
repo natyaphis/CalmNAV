@@ -2,7 +2,7 @@
 
 Lightweight MSTR mNAV calculator with optional Discord notifications.
 
-Current version: `1.0.1`
+Current version: `1.0.2`
 
 ![CalmNAV Discord terminal preview](asset/Screenshot.png)
 
