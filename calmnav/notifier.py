@@ -40,22 +40,52 @@ def build_discord_payload(
     return {
         "embeds": [
             {
-                "title": "CalmNAV Update",
+                "title": "CALMNAV TERMINAL",
                 "color": settings.discord_embed_color,
                 "description": (
-                    f"**mNAV {result.mnav:.3f}x**\n"
-                    f"MSTR `${market.mstr_price_usd:,.2f}` | "
-                    f"BTC `${market.btc_price_usd:,.2f}`"
+                    "```text\n"
+                    f"MSTR {market.mstr_price_usd:>10,.2f} USD\n"
+                    f"BTC  {market.btc_price_usd:>10,.2f} USD\n"
+                    f"mNAV {result.mnav:>10.3f} x\n"
+                    "```"
                 ),
                 "timestamp": timestamp,
                 "fields": [
-                    {"name": "Premium to Cost", "value": f"{result.premium_to_cost:.3f}x", "inline": True},
-                    {"name": "Reported BTC", "value": f"{holdings.btc_holdings:,.0f}", "inline": True},
-                    {"name": "Total Cost", "value": f"${holdings.total_cost_usd / 1_000_000_000:,.2f}B", "inline": True},
-                    {"name": "BTC Market Value", "value": f"${result.btc_market_value_usd / 1_000_000_000:,.2f}B", "inline": True},
-                    {"name": "MSTR Market Cap", "value": f"${market.market_cap_usd / 1_000_000_000:,.2f}B", "inline": True},
-                    {"name": "Sources", "value": f"holdings={holdings.source}\nmarket={market.source}", "inline": False},
+                    {
+                        "name": "BALANCE SHEET",
+                        "value": (
+                            "```text\n"
+                            f"BTC HELD   {holdings.btc_holdings:>12,.0f}\n"
+                            f"BTC VALUE  {result.btc_market_value_usd / 1_000_000_000:>12,.2f}B\n"
+                            f"COST BASIS {holdings.total_cost_usd / 1_000_000_000:>12,.2f}B\n"
+                            f"MKT CAP    {market.market_cap_usd / 1_000_000_000:>12,.2f}B\n"
+                            "```"
+                        ),
+                        "inline": True,
+                    },
+                    {
+                        "name": "RATIOS",
+                        "value": (
+                            "```text\n"
+                            f"MNAV       {result.mnav:>12.3f}x\n"
+                            f"PREM/COST  {result.premium_to_cost:>12.3f}x\n"
+                            f"SHARES OS  {market.shares_outstanding / 1_000_000:>10.2f}M\n"
+                            "```"
+                        ),
+                        "inline": True,
+                    },
+                    {
+                        "name": "FEEDS",
+                        "value": (
+                            "```text\n"
+                            f"HOLDINGS {holdings.source}\n"
+                            f"MARKET   {market.source}\n"
+                            "```"
+                        ),
+                        "inline": False,
+                    },
                 ],
+                "footer": {"text": "Sydney schedule 09:00 / 21:00"},
             }
         ]
     }
