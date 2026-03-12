@@ -5,7 +5,7 @@ Lightweight MSTR mNAV calculator with optional Discord notifications.
 ## What it does
 
 - Scrapes `https://www.strategy.com/purchases` for Strategy's reported BTC holdings and total cost.
-- Fetches `MSTR` and `BTC-USD` market data with `yfinance`.
+- Fetches `MSTR` and `BTC-USD` market data from the Yahoo Finance quote endpoint.
 - Computes a simple mNAV ratio as:
 
 ```text
@@ -36,7 +36,7 @@ Set these values as needed:
 - `DISCORD_WEBHOOK_URL`: required only when sending to Discord
 - `MANUAL_BTC_HOLDINGS`: optional fallback if the Strategy page changes
 - `MANUAL_TOTAL_COST_USD`: optional fallback if the Strategy page changes
-- `MANUAL_SHARES_OUTSTANDING`: optional override if `yfinance` does not return shares
+- `MANUAL_SHARES_OUTSTANDING`: optional override if Yahoo Finance does not return enough market-cap data
 
 3. Run the calculator.
 
@@ -74,5 +74,5 @@ Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, 
 ## Notes
 
 - The Strategy purchases page is a website, not a guaranteed public API. Expect scraping breakage eventually.
-- `yfinance` is convenient for a first version but is not an official low-latency market data feed.
+- The Yahoo Finance quote endpoint is convenient for a first version but is not an official low-latency market data feed.
 - This project currently computes a simple market-cap-based mNAV, not Strategy's full enterprise-value-based definition.

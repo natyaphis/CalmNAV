@@ -16,6 +16,7 @@ CURRENCY_SUFFIXES = {
     "B": 1_000_000_000,
     "T": 1_000_000_000_000,
 }
+YAHOO_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote"
 
 
 def _parse_number(text: str) -> float:
@@ -120,23 +121,31 @@ def _extract_metric_from_html(html: str, labels: tuple[str, ...], money: bool) -
 
 
 def fetch_market_snapshot(settings: Settings, holdings: HoldingsSnapshot) -> MarketSnapshot:
-    import yfinance as yf
+    quotes = _fetch_yahoo_quotes(settings, [settings.mstr_ticker, settings.btc_ticker])
+    mstr_quote = quotes[settings.mstr_ticker]
+    btc_quote = quotes[settings.btc_ticker]
 
-    mstr = yf.Ticker(settings.mstr_ticker)
-    btc = yf.Ticker(settings.btc_ticker)
+    mstr_price = _require_float(
+        mstr_quote.get("regularMarketPrice") or mstr_quote.get("postMarketPrice") or mstr_quote.get("preMarketPrice"),
+        "MSTR last price",
+    )
+    btc_price = _require_float(
+        btc_quote.get("regularMarketPrice"),
+        "BTC last price",
+    )
 
-    mstr_fast = mstr.fast_info
-    btc_fast = btc.fast_info
-
-    mstr_price = _require_float(mstr_fast.get("lastPrice"), "MSTR last price")
-    btc_price = _require_float(btc_fast.get("lastPrice"), "BTC last price")
-
+    market_cap = mstr_quote.get("marketCap")
     shares_outstanding = settings.manual_shares_outstanding
     if shares_outstanding is None:
-        shares_outstanding = _resolve_shares_outstanding(mstr)
-
-    market_cap = mstr_fast.get("marketCap")
-    if market_cap is None:
+        if market_cap is not None:
+            shares_outstanding = float(market_cap) / mstr_price
+        else:
+            shares_outstanding = _require_float(
+                mstr_quote.get("sharesOutstanding"),
+                "MSTR shares outstanding",
+            )
+            market_cap = mstr_price * shares_outstanding
+    elif market_cap is None:
         market_cap = mstr_price * shares_outstanding
 
     return MarketSnapshot(
@@ -144,23 +153,27 @@ def fetch_market_snapshot(settings: Settings, holdings: HoldingsSnapshot) -> Mar
         btc_price_usd=btc_price,
         market_cap_usd=float(market_cap),
         shares_outstanding=float(shares_outstanding),
-        source="yfinance",
+        source="Yahoo Finance quote API",
     )
 
 
-def _resolve_shares_outstanding(ticker: Any) -> float:
-    fast_info = ticker.fast_info
-    shares = fast_info.get("shares")
-    if shares:
-        return float(shares)
+def _fetch_yahoo_quotes(settings: Settings, symbols: list[str]) -> dict[str, dict[str, Any]]:
+    response = requests.get(
+        YAHOO_QUOTE_URL,
+        params={"symbols": ",".join(symbols)},
+        headers={"User-Agent": settings.user_agent},
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    results = payload.get("quoteResponse", {}).get("result", [])
+    quotes = {item["symbol"]: item for item in results if item.get("symbol")}
 
-    info = ticker.info
-    for key in ("sharesOutstanding", "impliedSharesOutstanding"):
-        value = info.get(key)
-        if value:
-            return float(value)
+    missing = [symbol for symbol in symbols if symbol not in quotes]
+    if missing:
+        raise ValueError(f"Missing Yahoo Finance quote data for: {', '.join(missing)}")
 
-    raise ValueError("Unable to resolve MSTR shares outstanding.")
+    return quotes
 
 
 def _require_float(value: Any, label: str) -> float:
