@@ -44,6 +44,7 @@ Set these values as needed:
 - `DISCORD_EMBED_COLOR`: optional hex embed color, defaults to `FA660F`
 - `ALERT_TIMEZONE`: optional, defaults to `Australia/Sydney`
 - `ALERT_TIMES`: optional comma-separated 24-hour times, defaults to `09:00,21:00`
+- `ALERT_WINDOW_MINUTES`: optional, defaults to `15`
 - `SEC_USER_AGENT`: optional but recommended for SEC requests
 - `MANUAL_BTC_HOLDINGS`: optional fallback if the Strategy page changes
 - `MANUAL_TOTAL_COST_USD`: optional fallback if the Strategy page changes
@@ -70,17 +71,17 @@ Add these repository secrets:
 
 The included workflow runs every day at these UTC slots:
 
-- `22:00 UTC`
-- `23:00 UTC`
-- `10:00 UTC`
-- `11:00 UTC`
+- `22:07 UTC`
+- `23:07 UTC`
+- `10:07 UTC`
+- `11:07 UTC`
 
 The script uses the configured local alert timezone and only sends messages at:
 
 - `09:00 Australia/Sydney`
 - `21:00 Australia/Sydney`
 
-The extra UTC entries are there to cover both AEST and AEDT. GitHub Actions can still run late, so timing is best-effort rather than exact-to-the-minute.
+The extra UTC entries are there to cover both AEST and AEDT. The workflow avoids running exactly on `:00`, and the script accepts a short local alert window so the `09:00` and `21:00` Sydney notifications are less likely to be missed by GitHub scheduler jitter.
 
 Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, which is useful for testing the Discord notification path.
 

@@ -35,8 +35,16 @@ def build_parser() -> argparse.ArgumentParser:
 def should_run_now() -> bool:
     alert_tz = ZoneInfo(settings.alert_timezone)
     now_local = datetime.now(alert_tz)
-    current_time = now_local.strftime("%H:%M")
-    return current_time in set(settings.alert_times)
+    current_minutes = now_local.hour * 60 + now_local.minute
+
+    for alert_time in settings.alert_times:
+        hour_text, minute_text = alert_time.split(":", 1)
+        target_minutes = int(hour_text) * 60 + int(minute_text)
+        delta = current_minutes - target_minutes
+        if 0 <= delta <= settings.alert_window_minutes:
+            return True
+
+    return False
 
 
 def main() -> int:

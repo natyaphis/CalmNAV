@@ -25,6 +25,13 @@ def _read_embed_color(name: str, default: str) -> int:
     return int(value, 16)
 
 
+def _read_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if not value:
+        return default
+    return int(value.strip())
+
+
 @dataclass(frozen=True)
 class Settings:
     strategy_purchases_url: str = os.getenv(
@@ -45,6 +52,7 @@ class Settings:
     )
     alert_timezone: str = os.getenv("ALERT_TIMEZONE", "Australia/Sydney")
     alert_times: tuple[str, ...] = _read_csv("ALERT_TIMES", "09:00,21:00")
+    alert_window_minutes: int = _read_int("ALERT_WINDOW_MINUTES", 15)
     manual_btc_holdings: float | None = _read_float("MANUAL_BTC_HOLDINGS")
     manual_total_cost_usd: float | None = _read_float("MANUAL_TOTAL_COST_USD")
     manual_shares_outstanding: float | None = _read_float("MANUAL_SHARES_OUTSTANDING")
