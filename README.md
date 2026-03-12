@@ -69,6 +69,8 @@ The script uses New York time and the NYSE calendar to only send messages at:
 
 The extra UTC entries are there to cover both EST and EDT. GitHub Actions can still run late, so timing is best-effort rather than exact-to-the-minute.
 
+Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, which is useful for testing the Discord notification path.
+
 ## Notes
 
 - The Strategy purchases page is a website, not a guaranteed public API. Expect scraping breakage eventually.

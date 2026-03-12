@@ -31,4 +31,9 @@ jobs:
           MANUAL_BTC_HOLDINGS: ${{ secrets.MANUAL_BTC_HOLDINGS }}
           MANUAL_TOTAL_COST_USD: ${{ secrets.MANUAL_TOTAL_COST_USD }}
           MANUAL_SHARES_OUTSTANDING: ${{ secrets.MANUAL_SHARES_OUTSTANDING }}
-        run: python -m calmnav.main --send-discord --scheduled-run
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python -m calmnav.main --send-discord --scheduled-run
+          else
+            python -m calmnav.main --send-discord
+          fi
