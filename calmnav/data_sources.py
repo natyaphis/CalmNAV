@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+from urllib.parse import quote_plus
 
 import requests
 
@@ -16,7 +17,8 @@ CURRENCY_SUFFIXES = {
     "B": 1_000_000_000,
     "T": 1_000_000_000_000,
 }
-YAHOO_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote"
+STOOQ_QUOTE_URL = "https://stooq.com/q/l/"
+COINGECKO_SIMPLE_PRICE_URL = "https://api.coingecko.com/api/v3/simple/price"
 
 
 def _parse_number(text: str) -> float:
@@ -121,59 +123,61 @@ def _extract_metric_from_html(html: str, labels: tuple[str, ...], money: bool) -
 
 
 def fetch_market_snapshot(settings: Settings, holdings: HoldingsSnapshot) -> MarketSnapshot:
-    quotes = _fetch_yahoo_quotes(settings, [settings.mstr_ticker, settings.btc_ticker])
-    mstr_quote = quotes[settings.mstr_ticker]
-    btc_quote = quotes[settings.btc_ticker]
+    mstr_price = fetch_stooq_price(settings, settings.mstr_ticker)
+    btc_price = fetch_coingecko_btc_price(settings)
 
-    mstr_price = _require_float(
-        mstr_quote.get("regularMarketPrice") or mstr_quote.get("postMarketPrice") or mstr_quote.get("preMarketPrice"),
-        "MSTR last price",
-    )
-    btc_price = _require_float(
-        btc_quote.get("regularMarketPrice"),
-        "BTC last price",
-    )
-
-    market_cap = mstr_quote.get("marketCap")
     shares_outstanding = settings.manual_shares_outstanding
     if shares_outstanding is None:
-        if market_cap is not None:
-            shares_outstanding = float(market_cap) / mstr_price
-        else:
-            shares_outstanding = _require_float(
-                mstr_quote.get("sharesOutstanding"),
-                "MSTR shares outstanding",
-            )
-            market_cap = mstr_price * shares_outstanding
-    elif market_cap is None:
-        market_cap = mstr_price * shares_outstanding
+        raise ValueError("MANUAL_SHARES_OUTSTANDING must be set for market-cap calculation.")
+
+    market_cap = mstr_price * shares_outstanding
 
     return MarketSnapshot(
         mstr_price_usd=mstr_price,
         btc_price_usd=btc_price,
         market_cap_usd=float(market_cap),
         shares_outstanding=float(shares_outstanding),
-        source="Yahoo Finance quote API",
+        source="Stooq + CoinGecko",
     )
 
 
-def _fetch_yahoo_quotes(settings: Settings, symbols: list[str]) -> dict[str, dict[str, Any]]:
+def fetch_stooq_price(settings: Settings, ticker: str) -> float:
+    stooq_symbol = _stooq_symbol(ticker)
     response = requests.get(
-        YAHOO_QUOTE_URL,
-        params={"symbols": ",".join(symbols)},
+        STOOQ_QUOTE_URL,
+        params={"s": stooq_symbol, "i": "1"},
+        headers={"User-Agent": settings.user_agent},
+        timeout=30,
+    )
+    response.raise_for_status()
+    lines = [line.strip() for line in response.text.splitlines() if line.strip()]
+    if len(lines) < 2:
+        raise ValueError(f"Unexpected Stooq response for {ticker}: {response.text!r}")
+    header = [item.strip().lower() for item in lines[0].split(",")]
+    values = [item.strip() for item in lines[1].split(",")]
+    row = dict(zip(header, values, strict=False))
+    close_value = row.get("close")
+    if not close_value or close_value.lower() == "n/d":
+        raise ValueError(f"Missing Stooq close price for {ticker}.")
+    return float(close_value)
+
+
+def fetch_coingecko_btc_price(settings: Settings) -> float:
+    response = requests.get(
+        COINGECKO_SIMPLE_PRICE_URL,
+        params={"ids": "bitcoin", "vs_currencies": "usd"},
         headers={"User-Agent": settings.user_agent},
         timeout=30,
     )
     response.raise_for_status()
     payload = response.json()
-    results = payload.get("quoteResponse", {}).get("result", [])
-    quotes = {item["symbol"]: item for item in results if item.get("symbol")}
+    return _require_float(payload.get("bitcoin", {}).get("usd"), "BTC price")
 
-    missing = [symbol for symbol in symbols if symbol not in quotes]
-    if missing:
-        raise ValueError(f"Missing Yahoo Finance quote data for: {', '.join(missing)}")
 
-    return quotes
+def _stooq_symbol(ticker: str) -> str:
+    if ticker.upper() == "MSTR":
+        return "mstr.us"
+    return quote_plus(ticker.lower())
 
 
 def _require_float(value: Any, label: str) -> float:
