@@ -98,3 +98,7 @@ Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, 
 - The primary holdings source is the Strategy purchases page's structured Next.js payload. If that fails, CalmNAV falls back to the latest official Strategy `8-K`, then to manual secrets.
 - Stooq and CoinGecko are convenient for a first version but are not official low-latency market data feeds.
 - This project currently computes a simple market-cap-based mNAV, not Strategy's full enterprise-value-based definition.
+
+## License
+
+MIT
