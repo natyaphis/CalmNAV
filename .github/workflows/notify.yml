@@ -39,7 +39,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           ALERT_TIMEZONE: Australia/Sydney
           ALERT_TIMES: 09:00,21:00
-          ALERT_WINDOW_MINUTES: 30
+          ALERT_WINDOW_MINUTES: 180
           MANUAL_BTC_HOLDINGS: ${{ secrets.MANUAL_BTC_HOLDINGS }}
           MANUAL_TOTAL_COST_USD: ${{ secrets.MANUAL_TOTAL_COST_USD }}
           MANUAL_SHARES_OUTSTANDING: ${{ secrets.MANUAL_SHARES_OUTSTANDING }}

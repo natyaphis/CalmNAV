@@ -2,7 +2,7 @@
 
 Lightweight MSTR mNAV calculator with optional Discord notifications.
 
-Current version: `1.0.2`
+Current version: `1.0.3`
 
 ![CalmNAV Discord terminal preview](asset/Screenshot.png)
 
@@ -44,7 +44,7 @@ Set these values as needed:
 - `DISCORD_EMBED_COLOR`: optional hex embed color, defaults to `FA660F`
 - `ALERT_TIMEZONE`: optional, defaults to `Australia/Sydney`
 - `ALERT_TIMES`: optional comma-separated 24-hour times, defaults to `09:00,21:00`
-- `ALERT_WINDOW_MINUTES`: optional, defaults to `30`
+- `ALERT_WINDOW_MINUTES`: optional, defaults to `180`
 - `SEC_USER_AGENT`: optional but recommended for SEC requests
 - `SCHEDULE_STATE_BRANCH`: optional, defaults to `automation-state`
 - `SCHEDULE_STATE_PATH`: optional, defaults to `.calmnav/schedule-state.json`
@@ -86,6 +86,8 @@ The script uses the configured local alert timezone and only sends messages at:
 
 - `09:00 Australia/Sydney`
 - `21:00 Australia/Sydney`
+
+For scheduled runs, CalmNAV accepts executions that land within `180` minutes after each target slot so delayed GitHub Actions runs can still deliver the message.
 
 The extra UTC entries cover both AEST and AEDT and include a fallback run for each alert slot. CalmNAV stores sent-slot state in GitHub so only one message is sent for each Sydney `09:00` and `21:00` window even if both the primary and fallback schedules fire.
 
