@@ -101,4 +101,4 @@ Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, 
 
 ## License
 
-MIT
+All Rights Reserved. See [LICENSE](LICENSE).
