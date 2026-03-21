@@ -54,10 +54,16 @@ def build_discord_payload(
 ) -> dict:
     timestamp = datetime.now(timezone.utc).isoformat()
     ratios_lines = [f"SIMPLE     {result.mnav:>12.3f}x"]
-    if strategy_defined_result is not None:
-        ratios_lines.append(f"STRATEGY   {strategy_defined_result.mnav:>12.3f}x")
-    if strategy_reported_mnav is not None:
-        ratios_lines.append(f"WEB        {strategy_reported_mnav:>12.3f}x")
+    ratios_lines.append(
+        f"STRATEGY   {strategy_defined_result.mnav:>12.3f}x"
+        if strategy_defined_result is not None
+        else "STRATEGY            N/A"
+    )
+    ratios_lines.append(
+        f"WEB        {strategy_reported_mnav:>12.3f}x"
+        if strategy_reported_mnav is not None
+        else "WEB                 N/A"
+    )
     ratios_lines.extend(
         [
             f"PREM/COST  {result.premium_to_cost:>12.3f}x",
@@ -67,12 +73,12 @@ def build_discord_payload(
     strategy_defined_line = (
         f"DEF  {strategy_defined_result.mnav:>10.3f} x\n"
         if strategy_defined_result is not None
-        else ""
+        else "DEF         N/A\n"
     )
     strategy_reported_line = (
         f"WEB  {strategy_reported_mnav:>10.3f} x\n"
         if strategy_reported_mnav is not None
-        else ""
+        else "WEB         N/A\n"
     )
     return {
         "embeds": [
