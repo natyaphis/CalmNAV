@@ -26,6 +26,21 @@ class MNavResult:
     premium_to_cost: float
 
 
+@dataclass(frozen=True)
+class StrategyCapitalStructure:
+    debt_usd: float
+    preferred_stock_usd: float
+    cash_usd: float
+    source: str
+
+
+@dataclass(frozen=True)
+class StrategyDefinedMNavResult:
+    mnav: float
+    enterprise_value_usd: float
+    bitcoin_nav_usd: float
+
+
 def compute_mnav(holdings: HoldingsSnapshot, market: MarketSnapshot) -> MNavResult:
     btc_market_value_usd = holdings.btc_holdings * market.btc_price_usd
     if btc_market_value_usd <= 0:
@@ -40,4 +55,29 @@ def compute_mnav(holdings: HoldingsSnapshot, market: MarketSnapshot) -> MNavResu
         mnav=mnav,
         btc_market_value_usd=btc_market_value_usd,
         premium_to_cost=premium_to_cost,
+    )
+
+
+def compute_strategy_defined_mnav(
+    holdings: HoldingsSnapshot,
+    market: MarketSnapshot,
+    capital_structure: StrategyCapitalStructure,
+) -> StrategyDefinedMNavResult:
+    bitcoin_nav_usd = holdings.btc_holdings * market.btc_price_usd
+    if bitcoin_nav_usd <= 0:
+        raise ValueError("Bitcoin NAV must be positive.")
+
+    enterprise_value_usd = (
+        market.market_cap_usd
+        + capital_structure.debt_usd
+        + capital_structure.preferred_stock_usd
+        - capital_structure.cash_usd
+    )
+    if enterprise_value_usd <= 0:
+        raise ValueError("Enterprise value must be positive.")
+
+    return StrategyDefinedMNavResult(
+        mnav=enterprise_value_usd / bitcoin_nav_usd,
+        enterprise_value_usd=enterprise_value_usd,
+        bitcoin_nav_usd=bitcoin_nav_usd,
     )

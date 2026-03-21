@@ -6,9 +6,14 @@ import sys
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from calmnav.calculator import compute_mnav
+from calmnav.calculator import StrategyDefinedMNavResult, compute_mnav, compute_strategy_defined_mnav
 from calmnav.config import settings
-from calmnav.data_sources import fetch_market_snapshot, fetch_strategy_holdings
+from calmnav.data_sources import (
+    fetch_market_snapshot,
+    fetch_strategy_capital_structure,
+    fetch_strategy_holdings,
+    fetch_strategy_reported_mnav,
+)
 from calmnav.notifier import build_discord_payload, format_message, post_to_discord
 from calmnav.schedule_state import mark_slot_sent, should_send_slot
 
@@ -67,6 +72,23 @@ def main() -> int:
     holdings = fetch_strategy_holdings(settings)
     market = fetch_market_snapshot(settings, holdings)
     result = compute_mnav(holdings, market)
+    strategy_defined_result: StrategyDefinedMNavResult | None = None
+    strategy_defined_source: str | None = None
+    strategy_defined_error: str | None = None
+    strategy_reported_mnav: float | None = None
+    strategy_reported_error: str | None = None
+
+    try:
+        capital_structure = fetch_strategy_capital_structure(settings)
+        strategy_defined_result = compute_strategy_defined_mnav(holdings, market, capital_structure)
+        strategy_defined_source = capital_structure.source
+    except Exception as exc:
+        strategy_defined_error = str(exc)
+
+    try:
+        strategy_reported_mnav = fetch_strategy_reported_mnav(settings)
+    except Exception as exc:
+        strategy_reported_error = str(exc)
 
     payload = {
         "mstr_price_usd": market.mstr_price_usd,
@@ -76,13 +98,28 @@ def main() -> int:
         "btc_holdings": holdings.btc_holdings,
         "total_cost_usd": holdings.total_cost_usd,
         "btc_market_value_usd": result.btc_market_value_usd,
-        "mnav": result.mnav,
+        "simple_mnav": result.mnav,
+        "strategy_defined_mnav": strategy_defined_result.mnav if strategy_defined_result is not None else None,
+        "strategy_reported_mnav": strategy_reported_mnav,
+        "strategy_enterprise_value_usd": (
+            strategy_defined_result.enterprise_value_usd if strategy_defined_result is not None else None
+        ),
+        "strategy_bitcoin_nav_usd": (
+            strategy_defined_result.bitcoin_nav_usd if strategy_defined_result is not None else None
+        ),
         "premium_to_cost": result.premium_to_cost,
         "holdings_source": holdings.source,
         "market_source": market.source,
+        "strategy_defined_source": strategy_defined_source,
+        "strategy_defined_error": strategy_defined_error,
+        "strategy_reported_error": strategy_reported_error,
     }
 
-    content = json.dumps(payload, indent=2) if args.json else format_message(holdings, market, result)
+    content = (
+        json.dumps(payload, indent=2)
+        if args.json
+        else format_message(holdings, market, result, strategy_defined_result, strategy_reported_mnav)
+    )
     print(content)
 
     if args.send_discord:
@@ -90,7 +127,14 @@ def main() -> int:
             parser.error("DISCORD_WEBHOOK_URL must be set when using --send-discord.")
         post_to_discord(
             settings.discord_webhook_url,
-            build_discord_payload(settings, holdings, market, result),
+            build_discord_payload(
+                settings,
+                holdings,
+                market,
+                result,
+                strategy_defined_result,
+                strategy_reported_mnav,
+            ),
         )
         if args.scheduled_run and slot_key:
             mark_slot_sent(settings, slot_key)

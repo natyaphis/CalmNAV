@@ -2,7 +2,7 @@
 
 Lightweight MSTR mNAV calculator with optional Discord notifications.
 
-Current version: `1.0.3`
+Current version: `1.0.4`
 
 ![CalmNAV Discord terminal preview](asset/Screenshot.png)
 
@@ -13,6 +13,7 @@ Current version: `1.0.3`
   - latest official Strategy `8-K` from SEC
   - manual override secrets
 - Fetches `MSTR` price from Stooq and `BTC` price from CoinGecko.
+- Auto-resolves basic shares outstanding from recent SEC filings when possible.
 - Computes a simple mNAV ratio as:
 
 ```text
@@ -20,6 +21,8 @@ mNAV = MSTR market cap / (reported BTC holdings * BTC price)
 ```
 
 - Posts the result to a Discord channel through a webhook.
+- Computes a Strategy-definition `mNAV` from public Strategy disclosures when possible, with manual fallbacks available.
+- Attempts to scrape the live Strategy-reported `mNAV` from `https://www.strategy.com/strategy`.
 - Can run locally or on a GitHub Actions schedule.
 
 ## Local usage
@@ -50,7 +53,10 @@ Set these values as needed:
 - `SCHEDULE_STATE_PATH`: optional, defaults to `.calmnav/schedule-state.json`
 - `MANUAL_BTC_HOLDINGS`: optional fallback if the Strategy page changes
 - `MANUAL_TOTAL_COST_USD`: optional fallback if the Strategy page changes
-- `MANUAL_SHARES_OUTSTANDING`: required for market-cap calculation in the current GitHub Actions setup
+- `MANUAL_SHARES_OUTSTANDING`: optional fallback if automatic shares-outstanding parsing fails
+- `MANUAL_DEBT_USD`: optional fallback if automatic debt parsing fails
+- `MANUAL_PREFERRED_STOCK_USD`: optional fallback if automatic preferred parsing fails
+- `MANUAL_CASH_USD`: optional fallback if automatic cash parsing fails
 
 3. Run the calculator.
 
@@ -70,6 +76,9 @@ Add these repository secrets:
 - `MANUAL_BTC_HOLDINGS` (optional)
 - `MANUAL_TOTAL_COST_USD` (optional)
 - `MANUAL_SHARES_OUTSTANDING` (optional)
+- `MANUAL_DEBT_USD` (optional)
+- `MANUAL_PREFERRED_STOCK_USD` (optional)
+- `MANUAL_CASH_USD` (optional)
 
 The included workflow runs every day at these UTC slots:
 
@@ -97,7 +106,9 @@ Manual `workflow_dispatch` runs bypass the schedule guard and send immediately, 
 
 - The primary holdings source is the Strategy purchases page's structured Next.js payload. If that fails, CalmNAV falls back to the latest official Strategy `8-K`, then to manual secrets.
 - Stooq and CoinGecko are convenient for a first version but are not official low-latency market data feeds.
-- This project currently computes a simple market-cap-based mNAV, not Strategy's full enterprise-value-based definition.
+- The `simple_mNAV` metric is market-cap-based and remains separate from the Strategy-definition `mNAV`.
+- The Strategy-definition `mNAV` now attempts to auto-parse debt, perpetual preferred stock, cash, and shares-outstanding from recent official Strategy and SEC disclosures before falling back to manual overrides.
+- The Strategy-reported `mNAV` scrape depends on the current `strategy.com` page structure and may break if the site changes.
 
 ## License
 

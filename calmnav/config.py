@@ -38,6 +38,10 @@ class Settings:
         "STRATEGY_PURCHASES_URL",
         "https://www.strategy.com/purchases",
     )
+    strategy_mstr_url: str = os.getenv(
+        "STRATEGY_MSTR_URL",
+        "https://www.strategy.com/strategy",
+    )
     mstr_ticker: str = os.getenv("MSTR_TICKER", "MSTR")
     btc_ticker: str = os.getenv("BTC_TICKER", "BTC-USD")
     discord_webhook_url: str | None = os.getenv("DISCORD_WEBHOOK_URL")
@@ -60,6 +64,9 @@ class Settings:
     manual_btc_holdings: float | None = _read_float("MANUAL_BTC_HOLDINGS")
     manual_total_cost_usd: float | None = _read_float("MANUAL_TOTAL_COST_USD")
     manual_shares_outstanding: float | None = _read_float("MANUAL_SHARES_OUTSTANDING")
+    manual_debt_usd: float | None = _read_float("MANUAL_DEBT_USD")
+    manual_preferred_stock_usd: float | None = _read_float("MANUAL_PREFERRED_STOCK_USD")
+    manual_cash_usd: float | None = _read_float("MANUAL_CASH_USD")
 
 
 settings = Settings()

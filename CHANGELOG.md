@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2026-03-21
+
+### Added
+
+- Added `strategy_defined_mnav`, computed from Strategy's enterprise-value formula when manual debt, preferred stock, and cash inputs are configured.
+- Added `strategy_reported_mnav`, scraped from the public `https://www.strategy.com/strategy` MSTR page when available.
+
+### Changed
+
+- Renamed the original output metric to `simple_mnav` to distinguish it from Strategy's official definition.
+- Added automatic parsing of shares outstanding and Strategy capital-structure inputs from recent public Strategy and SEC disclosures, with manual env values retained as fallbacks.
+
 ## [1.0.3] - 2026-03-13
 
 ### Changed

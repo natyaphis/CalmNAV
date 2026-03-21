@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from calmnav.calculator import HoldingsSnapshot, MNavResult, MarketSnapshot
+from calmnav.calculator import HoldingsSnapshot, MNavResult, MarketSnapshot, StrategyDefinedMNavResult
 from calmnav.config import Settings
 
 
@@ -12,8 +12,20 @@ def format_message(
     holdings: HoldingsSnapshot,
     market: MarketSnapshot,
     result: MNavResult,
+    strategy_defined_result: StrategyDefinedMNavResult | None = None,
+    strategy_reported_mnav: float | None = None,
 ) -> str:
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    strategy_defined_text = (
+        f"Strategy-defined mNAV: {strategy_defined_result.mnav:.3f}x"
+        if strategy_defined_result is not None
+        else "Strategy-defined mNAV: unavailable"
+    )
+    strategy_reported_text = (
+        f"Strategy-reported mNAV: {strategy_reported_mnav:.3f}x"
+        if strategy_reported_mnav is not None
+        else "Strategy-reported mNAV: unavailable"
+    )
     return "\n".join(
         [
             f"CalmNAV update ({timestamp})",
@@ -23,7 +35,9 @@ def format_message(
             f"Reported BTC: {holdings.btc_holdings:,.0f}",
             f"Total cost: ${holdings.total_cost_usd / 1_000_000_000:,.2f}B",
             f"BTC market value: ${result.btc_market_value_usd / 1_000_000_000:,.2f}B",
-            f"mNAV: {result.mnav:.3f}x",
+            f"Simple mNAV: {result.mnav:.3f}x",
+            strategy_defined_text,
+            strategy_reported_text,
             f"Premium to cost: {result.premium_to_cost:.3f}x",
             f"Data sources: holdings={holdings.source}; market={market.source}",
         ]
@@ -35,8 +49,31 @@ def build_discord_payload(
     holdings: HoldingsSnapshot,
     market: MarketSnapshot,
     result: MNavResult,
+    strategy_defined_result: StrategyDefinedMNavResult | None = None,
+    strategy_reported_mnav: float | None = None,
 ) -> dict:
     timestamp = datetime.now(timezone.utc).isoformat()
+    ratios_lines = [f"SIMPLE     {result.mnav:>12.3f}x"]
+    if strategy_defined_result is not None:
+        ratios_lines.append(f"STRATEGY   {strategy_defined_result.mnav:>12.3f}x")
+    if strategy_reported_mnav is not None:
+        ratios_lines.append(f"WEB        {strategy_reported_mnav:>12.3f}x")
+    ratios_lines.extend(
+        [
+            f"PREM/COST  {result.premium_to_cost:>12.3f}x",
+            f"SHARES OS  {market.shares_outstanding / 1_000_000:>10.2f}M",
+        ]
+    )
+    strategy_defined_line = (
+        f"DEF  {strategy_defined_result.mnav:>10.3f} x\n"
+        if strategy_defined_result is not None
+        else ""
+    )
+    strategy_reported_line = (
+        f"WEB  {strategy_reported_mnav:>10.3f} x\n"
+        if strategy_reported_mnav is not None
+        else ""
+    )
     return {
         "embeds": [
             {
@@ -46,7 +83,9 @@ def build_discord_payload(
                     "```text\n"
                     f"MSTR {market.mstr_price_usd:>10,.2f} USD\n"
                     f"BTC  {market.btc_price_usd:>10,.2f} USD\n"
-                    f"mNAV {result.mnav:>10.3f} x\n"
+                    f"SIMP {result.mnav:>10.3f} x\n"
+                    f"{strategy_defined_line}"
+                    f"{strategy_reported_line}"
                     "```"
                 ),
                 "timestamp": timestamp,
@@ -65,13 +104,7 @@ def build_discord_payload(
                     },
                     {
                         "name": "RATIOS",
-                        "value": (
-                            "```text\n"
-                            f"MNAV       {result.mnav:>12.3f}x\n"
-                            f"PREM/COST  {result.premium_to_cost:>12.3f}x\n"
-                            f"SHARES OS  {market.shares_outstanding / 1_000_000:>10.2f}M\n"
-                            "```"
-                        ),
+                        "value": "```text\n" + "\n".join(ratios_lines) + "\n```",
                         "inline": True,
                     },
                     {
